@@ -6,8 +6,13 @@ jobs:
     steps:
       - name: festch code 
         uses: actions/checkout@v4
-      - name: show status
-        run: echo "code is building"
+      - name: setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: maven build
+        run: mvn clean install -DskipTests
         
     
       
