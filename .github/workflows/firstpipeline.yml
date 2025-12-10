@@ -12,7 +12,7 @@ jobs:
       - name: set up java
         uses: actions/setup-java@v4
         with: 
-          distribution: tremurin
+          distribution: temurin
           java-version: 17
       - name: Build Jar
         run: mvn clean install -DskipTests
