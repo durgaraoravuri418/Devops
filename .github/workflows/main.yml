@@ -1,11 +1,75 @@
-name: FirstWorkFLow
-on: workflow_dispatch
+# --------------------------------------------------------------------------------
+# WORKFLOW NAME: Maven CI/CD Deploy to Nexus
+# FILE: .github/workflows/deploy.yml
+# --------------------------------------------------------------------------------
+name: FirstWorkFlow
+
+# Trigger this workflow on every push to the main branch
+on:
+  push:
+    branches:
+      - main  # Adjust this to your primary branch name (e.g., master, develop)
+
+# Ensure the workflow has necessary permissions, especially if you use environments
+permissions:
+  contents: read
+
 jobs:
-  first_job:
-    runs-on: ubuntu-latest
-    steps: 
-      - name: Print Greeting
-        run: echo "Hello World"
-      - name: Good Bye
-        run: echo "Good Bye"
+  build-and-deploy:
+    runs-on: ubuntu-latest  # Use a standard GitHub-hosted runner
+
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      # ----------------------------------------------------------------
+      # 1. Setup Java and Configure Maven Settings
+      # This step is CRITICAL. It creates a temporary settings.xml file 
+      # that maps the 'nexus-releases' ID (from your pom.xml) to the 
+      # actual credentials stored in your GitHub Secrets.
+      # ----------------------------------------------------------------
+      - name: ☕ Setup Java JDK and Nexus Credentials
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17' # Matches the java.version in your pom.xml
+          
+          # Pass the Release ID from pom.xml and its corresponding credentials
+          server-id: nexus-releases  
+          server-username: ${{ secrets.NEXUS_USERNAME }}
+          server-password: ${{ secrets.NEXUS_PASSWORD }}
+          
+          # Cache dependencies for faster subsequent runs
+          cache: 'maven'
+
+      # NOTE: actions/setup-java can only configure ONE server ID directly. 
+      # However, since you use the SAME username/password for both snapshots
+      # and releases, we only need to configure one ID. Maven will automatically 
+      # use the *first* server entry with the correct credentials for both 
+      # 'nexus-releases' and 'nexus-snapshots'. The simpler solution is to use
+      # a dedicated 'maven-settings-action' if you needed truly different credentials.
+
+      # ----------------------------------------------------------------
+      # 2. Build the Application
+      # ----------------------------------------------------------------
+      - name: 🔨 Build with Maven
+        run: mvn -B package --file pom.xml
+
+      # ----------------------------------------------------------------
+      # 3. Deploy to Nexus
+      # ----------------------------------------------------------------
+      - name: 🚀 Deploy to Nexus Repository
+        run: mvn deploy -DskipTests
+        # The 'mvn deploy' command reads the target URL from the pom.xml 
+        # (under distributionManagement) and retrieves the credentials from 
+        # the settings.xml generated in Step 1, using the server IDs.
+
+      - name: 📦 Archive Build Artifact (Optional)
+        # This step saves the built JAR file so you can download it from 
+        # the GitHub Actions summary page for manual inspection/deployment.
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spring-boot-jar
+          path: target/*.jar # Adjust path if your artifactId is different
         

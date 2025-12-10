@@ -9,7 +9,14 @@ public class homeController
 	@GetMapping
 	public String helloAPI()
 	{
-		return "Hello From DevOps Engineer";
+		return "Hello From DevOps Engineer"+ " " +System.getenv("WELCOME_MESSAGE");
 	}
+	
+	@GetMapping("/home")
+	public String message()
+	{
+		return "Home Page";
+	}
+	
 
 }
