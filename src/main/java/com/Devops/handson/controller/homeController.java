@@ -18,5 +18,11 @@ public class homeController
 		return "Home Page";
 	}
 	
+	@GetMapping("/test")
+	public String testing()
+	{
+		return "Testing";
+	}
+	
 
 }
