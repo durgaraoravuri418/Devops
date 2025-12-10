@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: festch code 
-        run: actions/checkout@v4
+        uses: actions/checkout@v4
       - name: show status
         run: echo "code is building"
         
