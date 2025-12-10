@@ -1,35 +1,14 @@
-name: PipelineTest
-on: [push,pull_request,workflow_dispatch]
+name: Docker Build
+
+on: push
+
 jobs:
-  build:
+  docker:
     runs-on: ubuntu-latest
+
     steps:
-      - name: festch code 
+      - name: Checkout code
         uses: actions/checkout@v4
-      - name: setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-      - name: maven build
-        run: mvn clean install -DskipTests
 
-      - name: cache mvn packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: upload jar
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-jar
-          path: target/*.jar
-          
-        
-            
-    
-      
-  
+      - name: Build Docker image
+        run: docker build -t my-app:latest .
