@@ -2,7 +2,7 @@ name: PipelineTest
 on: [push,pull_request]
 jobs:
   build:
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
     steps:
       - name: festch code 
         run: actions/checkout@v4
