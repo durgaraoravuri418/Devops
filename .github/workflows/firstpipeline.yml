@@ -21,6 +21,14 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+
+      - name: upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-jar
+          path: target/*.jar
+          
+        
             
     
       
