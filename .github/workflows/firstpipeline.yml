@@ -23,7 +23,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: upload jar
-        uses: actions/artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           name: build-jar
           path: target/*.jar
