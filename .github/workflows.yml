@@ -1,0 +1,8 @@
+name: FirstPipeline
+on: push
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: say hello
+        run: echo "Hello Devops"
