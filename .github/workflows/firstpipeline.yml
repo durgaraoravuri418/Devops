@@ -1,8 +1,14 @@
 name: PipelineTest
-on: push
+on: [push,pull_request]
 jobs:
-  hello:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu:latest
     steps:
-      - name: say hello
-        run: echo "Hello Devops"
+      - name: festch code 
+        run: actions/checkout@v4
+      - name: show status
+        run: echo "code is building"
+        
+    
+      
+  
