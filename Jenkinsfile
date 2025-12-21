@@ -9,8 +9,7 @@ pipeline {
     }
 
     tools {
-        jdk 'jdk17'
-        maven 'maven3'
+        maven 'Maven 3.8.1'
     }
 
     stages {
