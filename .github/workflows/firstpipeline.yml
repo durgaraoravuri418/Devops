@@ -1,35 +1,23 @@
-name: PipelineTest
-on: [push,pull_request,workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: festch code 
-        uses: actions/checkout@v4
-      - name: setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-      - name: maven build
-        run: mvn clean install -DskipTests
+      - run: echo "Building..."
 
-      - name: cache mvn packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+  deploy-dev:
+    needs: build
+    uses: company/central-ci/.github/workflows/deploy.yml@main
+    with:
+      env: "dev"
 
-      - name: upload jar
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-jar
-          path: target/*.jar
-          
-        
-            
-    
-      
-  
+  deploy-test:
+    needs: deploy-dev
+    uses: company/central-ci/.github/workflows/deploy.yml@main
+    with:
+      env: "test"
+
+  deploy-prod:
+    needs: deploy-test
+    uses: company/central-ci/.github/workflows/deploy.yml@main
+    with:
+      env: "production"
