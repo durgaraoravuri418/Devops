@@ -15,7 +15,7 @@ public class homeController
 	@GetMapping("/home")
 	public String message()
 	{
-		return "Home Page";
+		return "Home Page Loaded";
 	}
 	
 	@GetMapping("/test")
