@@ -22,40 +22,40 @@ pipeline {
 
         stage('Clean & Compile') {
             steps {
-                sh 'mvn clean compile'
+                bat 'mvn clean compile'
             }
         }
 
         stage('Unit Tests') {
             steps {
-                sh 'mvn test'
+                bat 'mvn test'
             }
             post {
                 always {
-                    junit 'target/surefire-reports/*.xml'
+                    junit 'target\\surefire-reports\\*.xml'
                 }
             }
         }
 
         stage('Package JAR') {
             steps {
-                sh 'mvn package -DskipTests'
+                bat 'mvn package -DskipTests'
             }
         }
 
         stage('Archive Artifact') {
             steps {
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'target\\*.jar', fingerprint: true
             }
         }
     }
 
     post {
         success {
-            echo "✅ JAR built successfully"
+            echo '✅ JAR build successful'
         }
         failure {
-            echo "❌ Build failed"
+            echo '❌ Build failed'
         }
         always {
             cleanWs()
