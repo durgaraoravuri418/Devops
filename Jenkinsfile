@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         APP_NAME = "spring-app"
-        DOCKERHUB_REPO = "durgarao418/spring-app"
+        DOCKERHUB_REPO = "yourdockerhubusername/spring-app"
         IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
     }
 
@@ -23,9 +23,7 @@ pipeline {
 
         stage('Unit Tests') {
             steps {
-                sh '''
-                  mvn -B clean test
-                '''
+                bat 'mvn -B clean test'
             }
             post {
                 always {
@@ -36,32 +34,30 @@ pipeline {
 
         stage('Dockerfile Lint') {
             steps {
-                sh '''
-                  docker run --rm -i hadolint/hadolint < Dockerfile
+                bat '''
+                docker run --rm -i hadolint/hadolint < Dockerfile
                 '''
             }
         }
 
-        stage('Build Docker Image (local)') {
+        stage('Build Docker Image (Local)') {
             steps {
-                sh """
-                  docker build \
-                    -t ${DOCKERHUB_REPO}:${IMAGE_TAG} \
-                    .
+                bat """
+                docker build -t %DOCKERHUB_REPO%:%IMAGE_TAG% .
                 """
             }
         }
 
         stage('Image Vulnerability Scan') {
             steps {
-                sh '''
-                  docker run --rm \
-                    -v /var/run/docker.sock:/var/run/docker.sock \
-                    aquasec/trivy:latest image \
-                    --exit-code 1 \
-                    --severity CRITICAL,HIGH \
-                    ${DOCKERHUB_REPO}:${IMAGE_TAG}
-                '''
+                bat """
+                docker run --rm ^
+                  -v //var/run/docker.sock:/var/run/docker.sock ^
+                  aquasec/trivy:latest image ^
+                  --exit-code 1 ^
+                  --severity CRITICAL,HIGH ^
+                  %DOCKERHUB_REPO%:%IMAGE_TAG%
+                """
             }
         }
 
@@ -69,13 +65,13 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'durgarao418',
-                    passwordVariable: 'Durga@418'
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh '''
-                      echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                      docker push ${DOCKERHUB_REPO}:${IMAGE_TAG}
-                    '''
+                    bat """
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    docker push %DOCKERHUB_REPO%:%IMAGE_TAG%
+                    """
                 }
             }
         }
@@ -83,13 +79,13 @@ pipeline {
 
     post {
         success {
-            echo "Image pushed: ${DOCKERHUB_REPO}:${IMAGE_TAG}"
+            echo "✅ Image pushed successfully: ${DOCKERHUB_REPO}:${IMAGE_TAG}"
         }
         failure {
-            echo "Pipeline failed — image not pushed"
+            echo "❌ Pipeline failed. Image NOT pushed."
         }
         always {
-            sh 'docker logout || true'
+            bat 'docker logout || exit 0'
         }
     }
 }
