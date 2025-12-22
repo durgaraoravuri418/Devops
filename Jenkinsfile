@@ -34,33 +34,41 @@ pipeline {
 
         stage('Dockerfile Lint') {
             steps {
-                bat """
+                bat '''
                 type Dockerfile | docker run --rm -i hadolint/hadolint
-                """
+                '''
             }
         }
 
         stage('Build Docker Image (Local)') {
             steps {
-                bat """
+                bat '''
                 docker build -t %DOCKERHUB_REPO%:%IMAGE_TAG% .
-                """
+                '''
             }
         }
-    
 
-        stage('Push Image to Docker Hub') {
+        stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'durgarao418',
-                    passwordVariable: 'Durga@418'
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    bat """
+                    bat '''
+                    echo Logging in to Docker Hub...
+                    docker logout || echo Not logged in
                     echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                    docker push %DOCKERHUB_REPO%:%IMAGE_TAG%
-                    """
+                    '''
                 }
+            }
+        }
+
+        stage('Push Image to Docker Hub') {
+            steps {
+                bat '''
+                docker push %DOCKERHUB_REPO%:%IMAGE_TAG%
+                '''
             }
         }
     }
