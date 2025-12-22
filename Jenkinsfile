@@ -1,15 +1,16 @@
 pipeline {
     agent any
 
+    environment {
+        APP_NAME = "spring-app"
+        DOCKERHUB_REPO = "durgarao418/spring-app"
+        IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
+    }
+
     options {
         timestamps()
         disableConcurrentBuilds()
-        timeout(time: 20, unit: 'MINUTES')
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-    }
-
-    tools {
-        maven 'Maven 3.8.1'
+        timeout(time: 30, unit: 'MINUTES')
     }
 
     stages {
@@ -20,45 +21,75 @@ pipeline {
             }
         }
 
-        stage('Clean & Compile') {
-            steps {
-                bat 'mvn clean compile'
-            }
-        }
-
         stage('Unit Tests') {
             steps {
-                bat 'mvn test'
+                sh '''
+                  mvn -B clean test
+                '''
             }
             post {
                 always {
-                    junit 'target\\surefire-reports\\*.xml'
+                    junit 'target/surefire-reports/*.xml'
                 }
             }
         }
 
-        stage('Package JAR') {
+        stage('Dockerfile Lint') {
             steps {
-                bat 'mvn package -DskipTests'
+                sh '''
+                  docker run --rm -i hadolint/hadolint < Dockerfile
+                '''
             }
         }
 
-        stage('Archive Artifact') {
+        stage('Build Docker Image (local)') {
             steps {
-                archiveArtifacts artifacts: 'target\\*.jar', fingerprint: true
+                sh """
+                  docker build \
+                    -t ${DOCKERHUB_REPO}:${IMAGE_TAG} \
+                    .
+                """
+            }
+        }
+
+        stage('Image Vulnerability Scan') {
+            steps {
+                sh '''
+                  docker run --rm \
+                    -v /var/run/docker.sock:/var/run/docker.sock \
+                    aquasec/trivy:latest image \
+                    --exit-code 1 \
+                    --severity CRITICAL,HIGH \
+                    ${DOCKERHUB_REPO}:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('Push Image to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'durgarao418',
+                    passwordVariable: 'Durga@418'
+                )]) {
+                    sh '''
+                      echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                      docker push ${DOCKERHUB_REPO}:${IMAGE_TAG}
+                    '''
+                }
             }
         }
     }
 
     post {
         success {
-            echo '✅ JAR build successful'
+            echo "Image pushed: ${DOCKERHUB_REPO}:${IMAGE_TAG}"
         }
         failure {
-            echo '❌ Build failed'
+            echo "Pipeline failed — image not pushed"
         }
         always {
-            cleanWs()
+            sh 'docker logout || true'
         }
     }
 }
