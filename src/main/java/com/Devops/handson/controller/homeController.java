@@ -21,7 +21,7 @@ public class homeController
 	@GetMapping("/test")
 	public String testing()
 	{
-		return "Testing page";
+		return "Testing page opened";
 	}
 	
 
