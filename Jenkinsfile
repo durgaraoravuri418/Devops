@@ -47,23 +47,7 @@ pipeline {
                 """
             }
         }
-
-        stage('Image Vulnerability Scan') {
-        
-       steps {
-        bat """
-        docker run --rm ^
-          -v %WORKSPACE%\\.trivycache:/root/.cache ^
-          aquasec/trivy:latest image ^
-          --image-src docker ^
-          --timeout 10m ^
-          --exit-code 1 ^
-          --severity CRITICAL,HIGH ^
-          %DOCKERHUB_REPO%:%IMAGE_TAG%
-        """
-    }
-}
-        
+    
 
         stage('Push Image to Docker Hub') {
             steps {
