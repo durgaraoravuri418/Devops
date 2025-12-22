@@ -35,9 +35,7 @@ pipeline {
         stage('Dockerfile Lint') {
             steps {
                 bat """
-                docker run --rm ^
-                  -v %CD%/Dockerfile:/Dockerfile ^
-                  hadolint/hadolint Dockerfile
+                type Dockerfile | docker run --rm -i hadolint/hadolint
                 """
             }
         }
