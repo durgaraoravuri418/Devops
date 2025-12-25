@@ -1,0 +1,15 @@
+jobs:
+  ci-cd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build app
+        run: echo "Build step here"
+
+      - name: Build & push image
+        run: echo "Docker step here"
+
+      - name: Update GitOps repo
+        run: echo "GitOps commit step here"
