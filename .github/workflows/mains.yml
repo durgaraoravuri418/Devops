@@ -17,13 +17,13 @@ jobs:
           uname -a
           cat /etc/os-release || true
 
-      - name: Install Maven (Amazon Linux)
+      - name: Install Maven (portable)
         run: |
-          if command -v dnf >/dev/null 2>&1; then
-            sudo dnf install -y maven
-          else
-            sudo yum install -y maven
-          fi
+          MAVEN_VERSION=3.9.9
+          curl -fsSL https://downloads.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz -o maven.tgz
+          tar -xzf maven.tgz
+          sudo mv apache-maven-${MAVEN_VERSION} /opt/maven
+          sudo ln -sf /opt/maven/bin/mvn /usr/local/bin/mvn
           mvn -v
 
       - name: Set up JDK
