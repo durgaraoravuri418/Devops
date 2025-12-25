@@ -1,30 +1,17 @@
-name: Build & Test Maven App (Ephemeral Runner)
+name: Build & Test Maven App
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
 
 jobs:
   build:
-    runs-on: [self-hosted, eks-ephemeral]
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Show environment
-        run: |
-          echo "Running inside EKS ephemeral runner"
-          hostname
-          uname -a
-          cat /etc/os-release || true
-
-      - name: Install Maven (portable)
-        run: |
-          MAVEN_VERSION=3.9.9
-          curl -fsSL https://downloads.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz -o maven.tgz
-          tar -xzf maven.tgz
-          sudo mv apache-maven-${MAVEN_VERSION} /opt/maven
-          sudo ln -sf /opt/maven/bin/mvn /usr/local/bin/mvn
-          mvn -v
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -33,16 +20,19 @@ jobs:
           java-version: 17
           cache: maven
 
+      - name: Verify Java
+        run: java -version
+
       - name: Run tests
-        run: mvn test --batch-mode
+        run: ./mvnw test --batch-mode
 
       - name: Build JAR
-        run: mvn clean package --batch-mode
+        run: ./mvnw clean package --batch-mode
 
       - name: Extract version
         id: jarver
         run: |
-          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Project version: $VERSION"
 
