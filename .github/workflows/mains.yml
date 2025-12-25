@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -19,6 +20,9 @@ jobs:
           distribution: temurin
           java-version: 17
           cache: maven
+
+      - name: Ensure mvnw is executable
+        run: chmod +x mvnw
 
       - name: Verify Java
         run: java -version
@@ -29,14 +33,14 @@ jobs:
       - name: Build JAR
         run: ./mvnw clean package --batch-mode
 
-      - name: Extract version
+      - name: Extract project version
         id: jarver
         run: |
           VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Project version: $VERSION"
 
-      - name: Upload artifacts
+      - name: Upload built artifacts
         uses: actions/upload-artifact@v4
         with:
           name: app-${{ steps.jarver.outputs.version }}
