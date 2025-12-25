@@ -1,4 +1,4 @@
-name: Test Ephemeral Runner
+name: Build & Test Maven App (Ephemeral Runner)
 
 on:
   workflow_dispatch:
@@ -8,7 +8,8 @@ jobs:
     runs-on: [self-hosted, eks-ephemeral]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Show environment
         run: |
@@ -16,5 +17,37 @@ jobs:
           hostname
           uname -a
 
-      - name: Sleep demo
-        run: sleep 20
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Verify Maven installation
+        run: mvn -v
+
+      - name: Resolve dependencies
+        run: mvn dependency:resolve
+
+      - name: Run tests
+        run: mvn test --batch-mode
+
+      - name: Build package (JAR)
+        run: mvn clean package -DskipTests=false --batch-mode
+
+      - name: Extract JAR version
+        id: jarver
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Project version: $VERSION"
+
+      - name: List built artifacts
+        run: ls -R target
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar-${{ steps.jarver.outputs.version }}
+          path: target/*.jar
