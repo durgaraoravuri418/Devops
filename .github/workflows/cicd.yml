@@ -26,3 +26,20 @@ jobs:
       - name: Build Jar
         run: mvn package -DskipTests
         
+      - name: login into DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/eks-app:${{ steps.extract_version.outputs.VERSION }} .
+         
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/eks-app:${{ steps.extract_version.outputs.VERSION }}
+
+      - name: show pushed image
+        run: |
+          echo ${{ secrets.DOCKER_HUB_USERNAME }}/eks-app:${{ steps.extract_version.outputs.VERSION }}
