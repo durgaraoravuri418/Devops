@@ -8,14 +8,19 @@ jobs:
     runs-on: [self-hosted, eks-ephemeral]
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Show environment
         run: |
           echo "Running inside EKS ephemeral runner"
           hostname
           uname -a
+
+      - name: Install Maven (Amazon Linux)
+        run: |
+          sudo yum update -y
+          sudo yum install -y maven
+          mvn -v
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -24,30 +29,24 @@ jobs:
           java-version: 17
           cache: maven
 
-      - name: Verify Maven installation
-        run: mvn -v
-
       - name: Resolve dependencies
-        run: mvn dependency:resolve
+        run: mvn dependency:resolve --batch-mode
 
       - name: Run tests
         run: mvn test --batch-mode
 
-      - name: Build package (JAR)
-        run: mvn clean package -DskipTests=false --batch-mode
+      - name: Build JAR
+        run: mvn clean package --batch-mode
 
-      - name: Extract JAR version
+      - name: Extract version
         id: jarver
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Project version: $VERSION"
 
-      - name: List built artifacts
-        run: ls -R target
-
-      - name: Upload JAR artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-jar-${{ steps.jarver.outputs.version }}
+          name: app-${{ steps.jarver.outputs.version }}
           path: target/*.jar
