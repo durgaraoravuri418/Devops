@@ -6,3 +6,23 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set up jdk
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'  
+
+      - name: extract version from pom.xml
+        id: extract_version
+        run: |
+          VERSION= VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$VERSION"
+          echo "::set-output name=VERSION::$VERSION"
+
+      - name: Run Maven Test
+        run: mvn clean test
+
+      - name: Build Jar
+        run: mvn package -DskipTests
+        
