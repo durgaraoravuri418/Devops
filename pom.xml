@@ -9,7 +9,7 @@
         <relativePath/> </parent>
     <groupId>com.devops</groupId>
     <artifactId>Devops</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>Devops</name>
     <description>Demo project for Spring Boot</description>
     <url/>
@@ -45,6 +45,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        
+    <!-- Spring Boot Actuator -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <!-- Micrometer Prometheus Registry -->
+    <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -62,7 +75,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+    </>
 
     <build>
         <plugins>
